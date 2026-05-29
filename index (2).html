@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naturality — Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f1e8;
+    --bg-soft: #efeadd;
+    --bg-warm: #e8e0cc;
+    --card: #ffffff;
+    --card-hover: #faf7ee;
+    --line: #ddd3bd;
+    --line-soft: #ebe3d0;
+    --line-strong: #b8aa8a;
+    --ink: #1a1d2e;
+    --ink-mid: #4a4f70;
+    --ink-soft: #7a7e98;
+    --ink-faint: #a8acb8;
+    --accent: #6b3fa0;
+    --accent-dark: #58338a;
+    --accent-soft: rgba(107, 63, 160, 0.08);
+    --asso: #2e7dca;
+    --asso-soft: rgba(46, 125, 202, 0.08);
+    --event: #e8722a;
+    --event-soft: rgba(232, 114, 42, 0.08);
+    --green: #2c9970;
+    --amber: #c89a2a;
+    --red: #d94548;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: 'Inter Tight', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    font-weight: 450;
+    line-height: 1.5;
+  }
+  .hidden { display: none !important; }
+
+  /* ============ LOGIN ============ */
+  #screen-login {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-decor { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; }
+  .blob.b1 { width: 480px; height: 480px; background: rgba(107,63,160,0.18); top: -160px; left: -120px; }
+  .blob.b2 { width: 420px; height: 420px; background: rgba(46,125,202,0.14); bottom: -140px; right: -100px; }
+  .blob.b3 { width: 360px; height: 360px; background: rgba(232,114,42,0.12); bottom: 120px; left: 40%; }
+
+  .login-card {
+    position: relative; z-index: 1;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 24px; width: 100%; max-width: 420px;
+    padding: 40px 38px 34px;
+    box-shadow: 0 30px 70px -30px rgba(26,29,46,0.35);
+    animation: rise .6s cubic-bezier(.2,.7,.3,1);
+  }
+  @keyframes rise { from { opacity:0; transform:translateY(20px);} to {opacity:1;transform:translateY(0);} }
+  .brand-c { display:flex; flex-direction:column; align-items:center; margin-bottom:28px; }
+  .logo {
+    width:56px; height:56px; background:var(--ink); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:600; font-size:28px; color:var(--bg); font-style:italic;
+    margin-bottom:16px;
+  }
+  .brand-c h1 { font-family:'Fraunces',serif; font-size:24px; font-weight:600; letter-spacing:-0.4px; }
+  .brand-c p { font-size:13px; color:var(--ink-soft); margin-top:4px; }
+  .lock-note {
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    font-size:12px; color:var(--ink-soft); background:var(--bg-soft);
+    border:1px solid var(--line-soft); border-radius:8px; padding:8px 12px; margin-bottom:24px;
+  }
+  .lock-note svg { width:13px; height:13px; stroke:var(--green); }
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:12.5px; font-weight:600; color:var(--ink-mid); margin-bottom:6px; }
+  .field input {
+    width:100%; font-family:'Inter Tight',sans-serif; font-size:14.5px;
+    padding:12px 14px; border:1px solid var(--line); border-radius:11px;
+    background:var(--bg-soft); color:var(--ink); transition:border-color .2s, background .2s;
+  }
+  .field input:focus { outline:none; border-color:var(--accent); background:var(--card); }
+  .field input::placeholder { color:var(--ink-faint); }
+  .btn {
+    width:100%; font-family:'Inter Tight',sans-serif; font-size:15px; font-weight:600;
+    padding:13px; border:none; border-radius:11px; background:var(--accent); color:white;
+    cursor:pointer; transition:background .2s, transform .1s;
+  }
+  .btn:hover { background:var(--accent-dark); }
+  .btn:active { transform:scale(.99); }
+  .err {
+    background:rgba(217,69,72,0.08); border:1px solid rgba(217,69,72,0.3); color:var(--red);
+    font-size:12.5px; padding:9px 12px; border-radius:9px; margin-bottom:16px; display:none;
+  }
+  .err.show { display:block; }
+  .demo-box { margin-top:20px; border:1px dashed var(--line); border-radius:12px; padding:14px; background:var(--bg-soft); }
+  .demo-box .dh { font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px; text-align:center; }
+  .demo-acc { display:flex; align-items:center; gap:10px; padding:7px 9px; border-radius:8px; cursor:pointer; transition:background .15s; }
+  .demo-acc:hover { background:var(--card); }
+  .demo-acc .da { width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:11px; }
+  .demo-acc .dt { font-size:12.5px; font-weight:600; }
+  .demo-acc .dd { font-size:11px; color:var(--ink-soft); }
+  .row-between { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+  .remember { display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-mid); cursor:pointer; }
+  .remember input { accent-color:var(--accent); }
+
+  /* ============ APP SHELL ============ */
+  .topbar {
+    background: var(--card); border-bottom:1px solid var(--line);
+    padding:14px 24px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:20;
+  }
+  .tb-left { display:flex; align-items:center; gap:16px; }
+  .brand-mini { display:flex; align-items:center; gap:11px; cursor:pointer; }
+  .logo-mini {
+    width:34px; height:34px; background:var(--ink); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:600; font-size:17px; color:var(--bg); font-style:italic;
+  }
+  .brand-mini .t { font-family:'Fraunces',serif; font-size:16px; font-weight:600; letter-spacing:-0.3px; }
+  .brand-mini .s { font-size:10.5px; color:var(--ink-soft); }
+  .breadcrumb { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); }
+  .breadcrumb .sep { color:var(--ink-faint); }
+  .breadcrumb .cur { color:var(--ink); font-weight:600; }
+  .univ-pill { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; padding:3px 9px; border-radius:6px; }
+  .univ-pill.asso { color:var(--asso); background:var(--asso-soft); }
+  .univ-pill.event { color:var(--event); background:var(--event-soft); }
+
+  .user-chip {
+    display:flex; align-items:center; gap:10px; background:var(--card);
+    border:1px solid var(--line); border-radius:100px; padding:6px 8px 6px 14px;
+    font-size:13px; color:var(--ink-mid); cursor:pointer; transition:border-color .2s;
+  }
+  .user-chip:hover { border-color:var(--line-strong); }
+  .user-chip .av { width:28px; height:28px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12px; }
+  .role-tag { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; padding:2px 7px; border-radius:5px; }
+
+  .wrap { max-width:1080px; margin:0 auto; padding:0 24px; position:relative; z-index:1; }
+
+  /* ============ ACCUEIL (2 univers) ============ */
+  .hero { text-align:center; padding:52px 0 40px; }
+  .hero .eyebrow { font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:18px; }
+  .hero h1 { font-family:'Fraunces',serif; font-size:clamp(32px,5.5vw,48px); font-weight:600; line-height:1.05; letter-spacing:-1px; margin-bottom:14px; }
+  .hero h1 .ital { font-style:italic; color:var(--accent); }
+  .hero p { font-size:16px; color:var(--ink-mid); max-width:470px; margin:0 auto; }
+
+  .universe-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin:12px 0 48px; }
+  @media (max-width:720px){ .universe-grid { grid-template-columns:1fr; } }
+  .universe {
+    position:relative; background:var(--card); border:1px solid var(--line);
+    border-radius:20px; padding:32px 30px 28px; cursor:pointer; text-align:left;
+    overflow:hidden; transition:transform .25s cubic-bezier(.2,.7,.3,1), box-shadow .25s, border-color .25s;
+  }
+  .universe::after { content:""; position:absolute; top:0; left:0; right:0; height:4px; transition:height .25s; }
+  .universe.asso::after { background:var(--asso); }
+  .universe.event::after { background:var(--event); }
+  .universe:hover { transform:translateY(-5px); box-shadow:0 18px 40px -18px rgba(26,29,46,0.28); }
+  .universe.asso:hover { border-color:var(--asso); }
+  .universe.event:hover { border-color:var(--event); }
+  .universe:hover::after { height:6px; }
+  .u-icon { width:54px; height:54px; border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+  .universe.asso .u-icon { background:var(--asso-soft); }
+  .universe.event .u-icon { background:var(--event-soft); }
+  .u-icon svg { width:28px; height:28px; }
+  .u-label { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+  .universe.asso .u-label { color:var(--asso); }
+  .universe.event .u-label { color:var(--event); }
+  .u-title { font-family:'Fraunces',serif; font-size:25px; font-weight:600; letter-spacing:-0.4px; margin-bottom:8px; }
+  .u-desc { font-size:14px; color:var(--ink-mid); margin-bottom:22px; min-height:40px; }
+  .u-modules { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:22px; }
+  .u-mod { font-size:12px; color:var(--ink-soft); background:var(--bg-soft); border:1px solid var(--line-soft); border-radius:7px; padding:4px 10px; }
+  .u-enter { display:flex; align-items:center; gap:8px; font-weight:600; font-size:14px; }
+  .universe.asso .u-enter { color:var(--asso); }
+  .universe.event .u-enter { color:var(--event); }
+  .u-enter .arrow { transition:transform .25s; }
+  .universe:hover .u-enter .arrow { transform:translateX(5px); }
+
+  /* ============ ESPACE (sous-pages) ============ */
+  .space-head { padding:36px 0 26px; }
+  .back-link { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft); cursor:pointer; margin-bottom:18px; background:none; border:none; font-family:inherit; }
+  .back-link:hover { color:var(--ink); }
+  .space-head h2 { font-family:'Fraunces',serif; font-size:32px; font-weight:600; letter-spacing:-0.6px; margin-bottom:6px; }
+  .space-head p { font-size:15px; color:var(--ink-mid); }
+
+  .module-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; padding-bottom:50px; }
+  @media (max-width:820px){ .module-grid { grid-template-columns:1fr 1fr; } }
+  @media (max-width:520px){ .module-grid { grid-template-columns:1fr; } }
+  .module {
+    background:var(--card); border:1px solid var(--line); border-radius:15px;
+    padding:22px 20px; cursor:pointer; transition:transform .2s, border-color .2s, box-shadow .2s;
+    position:relative;
+  }
+  .module:hover { transform:translateY(-4px); box-shadow:0 14px 30px -16px rgba(26,29,46,0.25); }
+  .module.asso:hover { border-color:var(--asso); }
+  .module.event:hover { border-color:var(--event); }
+  .module .m-icon { width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+  .module.asso .m-icon { background:var(--asso-soft); }
+  .module.event .m-icon { background:var(--event-soft); }
+  .module .m-icon svg { width:22px; height:22px; }
+  .module .m-title { font-weight:600; font-size:16px; margin-bottom:5px; }
+  .module .m-desc { font-size:13px; color:var(--ink-soft); line-height:1.45; }
+  .module .m-soon { position:absolute; top:16px; right:16px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--amber); background:rgba(200,154,42,0.1); padding:2px 7px; border-radius:5px; }
+
+  /* ============ MODAL RÔLE ============ */
+  .modal-bg { position:fixed; inset:0; background:rgba(26,29,46,0.4); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:100; padding:24px; }
+  .modal-bg.open { display:flex; }
+  .modal { background:var(--card); border-radius:18px; padding:30px; max-width:380px; width:100%; box-shadow:0 30px 60px -20px rgba(26,29,46,0.4); }
+  .modal h3 { font-family:'Fraunces',serif; font-size:20px; font-weight:600; margin-bottom:6px; }
+  .modal p { font-size:13.5px; color:var(--ink-mid); margin-bottom:20px; }
+  .role-opt { display:flex; align-items:center; gap:13px; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px; cursor:pointer; transition:border-color .2s, background .2s; }
+  .role-opt:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .role-opt .ri { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:700; color:white; font-size:14px; }
+  .role-opt .rt { font-weight:600; font-size:14px; }
+  .role-opt .rd { font-size:12px; color:var(--ink-soft); }
+  .modal-close { text-align:center; margin-top:8px; font-size:13px; color:var(--ink-soft); cursor:pointer; }
+  .modal-close:hover { color:var(--ink); }
+
+  .foot { border-top:1px solid var(--line); padding:24px 0 40px; display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--ink-soft); flex-wrap:wrap; gap:10px; }
+  .foot .badge { font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--bg-soft); border:1px solid var(--line-soft); padding:3px 9px; border-radius:6px; }
+</style>
+</head>
+<body>
+
+<!-- ========== ÉCRAN LOGIN ========== -->
+<div id="screen-login">
+  <div class="bg-decor"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+  <div class="login-card">
+    <div class="brand-c">
+      <div class="logo">N</div>
+      <h1>Naturality</h1>
+      <p>Espace de gestion réservé</p>
+    </div>
+    <div class="lock-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Accès sur invitation uniquement — réservé aux membres
+    </div>
+    <div class="err" id="err">Email ou mot de passe incorrect.</div>
+    <form onsubmit="doLogin(event)">
+      <div class="field">
+        <label for="email">Adresse email</label>
+        <input type="email" id="email" placeholder="prenom@naturality.fr" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="pw">Mot de passe</label>
+        <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="row-between">
+        <label class="remember"><input type="checkbox" id="remember" checked> Rester connecté</label>
+      </div>
+      <button type="submit" class="btn">Se connecter</button>
+    </form>
+    <div class="demo-box">
+      <div class="dh">Comptes de démonstration (clique pour remplir)</div>
+      <div class="demo-acc" onclick="fill('baptiste@naturality.fr')"><div class="da" style="background:#6b3fa0">A</div><div><div class="dt">Baptiste — Administrateur</div><div class="dd">baptiste@naturality.fr</div></div></div>
+      <div class="demo-acc" onclick="fill('victor@naturality.fr')"><div class="da" style="background:#2c9970">T</div><div><div class="dt">Victor — Trésorier</div><div class="dd">victor@naturality.fr</div></div></div>
+      <div class="demo-acc" onclick="fill('theo@naturality.fr')"><div class="da" style="background:#2e7dca">B</div><div><div class="dt">Théo — Bénévole</div><div class="dd">theo@naturality.fr</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== APP ========== -->
+<div id="screen-app" class="hidden">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="brand-mini" onclick="goHome()">
+        <div class="logo-mini">N</div>
+        <div><div class="t">Naturality</div><div class="s">Hub de gestion</div></div>
+      </div>
+      <div class="breadcrumb" id="breadcrumb"></div>
+    </div>
+    <div class="user-chip" onclick="openRole()">
+      <span class="role-tag" id="roleTag">Admin</span>
+      <span id="userName">Baptiste</span>
+      <span class="av" id="userAv">B</span>
+    </div>
+  </div>
+
+  <!-- PAGE ACCUEIL -->
+  <div id="page-home" class="wrap">
+    <div class="hero">
+      <div class="eyebrow">Quartier général numérique</div>
+      <h1>Deux univers,<br>une <span class="ital">même équipe</span>.</h1>
+      <p>Choisis l'espace dans lequel tu veux travailler. Tout est centralisé, rien ne se perd.</p>
+    </div>
+    <div class="universe-grid">
+      <button class="universe asso" onclick="goSpace('asso')">
+        <div class="u-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div class="u-label">Le stand · l'association</div>
+        <div class="u-title">Associatif</div>
+        <div class="u-desc">La vie de Naturality au quotidien : matériel, prestations, finances, membres.</div>
+        <div class="u-modules"><span class="u-mod">Inventaire</span><span class="u-mod">Devis &amp; factures</span><span class="u-mod">Prestations</span><span class="u-mod">Achats</span><span class="u-mod">Membres</span></div>
+        <div class="u-enter">Entrer dans l'espace <span class="arrow">→</span></div>
+      </button>
+      <button class="universe event" onclick="goSpace('event')">
+        <div class="u-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#e8722a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="u-label">Gravenchon Geek'Fest</div>
+        <div class="u-title">Événementiel</div>
+        <div class="u-desc">L'organisation de la convention : logistique, exposants, budget, jour J.</div>
+        <div class="u-modules"><span class="u-mod">Logistique salle</span><span class="u-mod">Exposants</span><span class="u-mod">Budget</span><span class="u-mod">Électricité</span><span class="u-mod">Bénévoles</span></div>
+        <div class="u-enter">Entrer dans l'espace <span class="arrow">→</span></div>
+      </button>
+    </div>
+    <div class="foot">
+      <div>Naturality — Association loi 1901 · SIRET 921 939 765 00019</div>
+      <div class="badge">v0.1 — hub</div>
+    </div>
+  </div>
+
+  <!-- PAGE ESPACE ASSOCIATIF -->
+  <div id="page-asso" class="wrap hidden">
+    <div class="space-head">
+      <button class="back-link" onclick="goHome()">← Retour à l'accueil</button>
+      <h2>Espace Associatif</h2>
+      <p>Tout ce qui concerne la vie de l'association Naturality au quotidien.</p>
+    </div>
+    <div class="module-grid">
+      <div class="module asso" onclick="soon('Inventaire')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+        <div class="m-title">Inventaire</div>
+        <div class="m-desc">Consoles, écrans, tables, câbles — ce qu'on possède et son état.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module asso" onclick="soon('Devis & factures')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <div class="m-title">Devis &amp; factures</div>
+        <div class="m-desc">Tous les documents commerciaux, numérotés et archivés.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module asso" onclick="soon('Prestations')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></div>
+        <div class="m-title">Prestations</div>
+        <div class="m-desc">Les animations réalisées : clients, dates, montants, suivi.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module asso" onclick="soon('Finances')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="m-title">Finances</div>
+        <div class="m-desc">Recettes, dépenses, achats, suivi des paiements.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module asso" onclick="soon('Membres')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="m-title">Membres &amp; bureau</div>
+        <div class="m-desc">Adhérents, rôles, coordonnées, cotisations.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module asso" onclick="soon('Documents')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="m-title">Documents</div>
+        <div class="m-desc">Statuts, PV d'AG, assurances, attestations.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE ESPACE ÉVÉNEMENTIEL -->
+  <div id="page-event" class="wrap hidden">
+    <div class="space-head">
+      <button class="back-link" onclick="goHome()">← Retour à l'accueil</button>
+      <h2>Espace Événementiel</h2>
+      <p>L'organisation du Gravenchon Geek'Fest, de A à Z.</p>
+    </div>
+    <div class="module-grid">
+      <div class="module event" onclick="soon('Logistique salle')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#e8722a" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg></div>
+        <div class="m-title">Logistique salle</div>
+        <div class="m-desc">Plan, matériel, tables/chaises, besoins vs stock.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module event" onclick="soon('Exposants')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#e8722a" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <div class="m-title">Exposants &amp; stands</div>
+        <div class="m-desc">Inscriptions, dossiers, emplacements, conformité.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module event" onclick="soon('Budget')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#e8722a" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="m-title">Budget événement</div>
+        <div class="m-desc">Recettes, dépenses, subventions, billetterie.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module event" onclick="soon('Électricité')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#e8722a" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></div>
+        <div class="m-title">Électricité</div>
+        <div class="m-desc">Circuits, puissances par stand, plan électrique.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module event" onclick="soon('Bénévoles')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#e8722a" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+        <div class="m-title">Bénévoles jour J</div>
+        <div class="m-desc">Répartition, planning, référents par zone.</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+      <div class="module event" onclick="soon('Tournois')">
+        <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#e8722a" stroke-width="2" stroke-linecap="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0z"/></svg></div>
+        <div class="m-title">Tournois</div>
+        <div class="m-desc">Gestionnaire de tournois (à réintégrer ici).</div>
+        <span class="m-soon">Bientôt</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL RÔLE -->
+<div class="modal-bg" id="roleModal">
+  <div class="modal">
+    <h3>Changer de profil</h3>
+    <p>Aperçu du système de rôles. En version connectée, chaque rôle donnera accès à des fonctions différentes.</p>
+    <div class="role-opt" onclick="setRole('Admin','Baptiste','B','#6b3fa0')"><div class="ri" style="background:#6b3fa0">A</div><div><div class="rt">Administrateur</div><div class="rd">Accès total — bureau</div></div></div>
+    <div class="role-opt" onclick="setRole('Trésorier','Victor','V','#2c9970')"><div class="ri" style="background:#2c9970">T</div><div><div class="rt">Trésorier</div><div class="rd">Finances, devis, factures, achats</div></div></div>
+    <div class="role-opt" onclick="setRole('Bénévole','Théo','T','#2e7dca')"><div class="ri" style="background:#2e7dca">T</div><div><div class="rt">Bénévole</div><div class="rd">Inventaire, planning jour J</div></div></div>
+    <div class="modal-close" onclick="closeRole()">Fermer</div>
+  </div>
+</div>
+
+<script>
+  const DEMO = {
+    'baptiste@naturality.fr': { role:'Admin', name:'Baptiste', initial:'B', color:'#6b3fa0' },
+    'victor@naturality.fr':   { role:'Trésorier', name:'Victor', initial:'V', color:'#2c9970' },
+    'theo@naturality.fr':     { role:'Bénévole', name:'Théo', initial:'T', color:'#2e7dca' },
+  };
+  const DEMO_PW = 'naturality';
+
+  function fill(email){ document.getElementById('email').value=email; document.getElementById('pw').value=DEMO_PW; document.getElementById('err').classList.remove('show'); }
+
+  function doLogin(e){
+    e.preventDefault();
+    const email=document.getElementById('email').value.trim().toLowerCase();
+    const pw=document.getElementById('pw').value;
+    const err=document.getElementById('err');
+    if(DEMO[email] && pw===DEMO_PW){
+      const u=DEMO[email];
+      setRole(u.role,u.name,u.initial,u.color);
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-app').classList.remove('hidden');
+      goHome();
+    } else {
+      err.textContent = (email && !DEMO[email]) ? "Aucun compte trouvé pour cet email (accès sur invitation)." : "Email ou mot de passe incorrect.";
+      err.classList.add('show');
+    }
+  }
+
+  function setRole(role,name,initial,color){
+    document.getElementById('roleTag').textContent=role;
+    document.getElementById('userName').textContent=name;
+    const av=document.getElementById('userAv'); av.textContent=initial; av.style.background=color;
+    const rt=document.getElementById('roleTag'); rt.style.color=color; rt.style.background=color+'14';
+    closeRole();
+  }
+
+  function showPage(id){
+    ['page-home','page-asso','page-event'].forEach(p=>document.getElementById(p).classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    window.scrollTo(0,0);
+  }
+  function goHome(){ showPage('page-home'); document.getElementById('breadcrumb').innerHTML=''; }
+  function goSpace(u){
+    if(u==='asso'){ showPage('page-asso'); document.getElementById('breadcrumb').innerHTML='<span class="sep">/</span><span class="univ-pill asso">Associatif</span>'; }
+    else { showPage('page-event'); document.getElementById('breadcrumb').innerHTML='<span class="sep">/</span><span class="univ-pill event">Événementiel</span>'; }
+  }
+  function soon(nom){ alert("« "+nom+" » — ce module sera construit prochainement.\n\nLa structure du site est en place, on remplit les modules un par un."); }
+
+  function openRole(){ document.getElementById('roleModal').classList.add('open'); }
+  function closeRole(){ document.getElementById('roleModal').classList.remove('open'); }
+  document.getElementById('roleModal').addEventListener('click',function(e){ if(e.target===this) closeRole(); });
+</script>
+
+</body>
+</html>
