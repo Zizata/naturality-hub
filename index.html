@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #f5f1e8;
@@ -317,44 +318,110 @@
   .sheet-cancel { background:var(--bg-soft); color:var(--ink-mid); border:1px solid var(--line) !important; }
   .sheet-save { background:var(--asso); color:white; }
   .sheet-save:hover { background:#256bb0; }
+
+  /* Auth tabs + signup */
+  .auth-tabs { display:flex; gap:6px; background:var(--bg-soft); border:1px solid var(--line-soft); border-radius:11px; padding:4px; margin-bottom:20px; }
+  .auth-tab { flex:1; font-family:inherit; font-size:13.5px; font-weight:600; padding:9px; border:none; border-radius:8px; background:transparent; color:var(--ink-soft); cursor:pointer; transition:all .2s; }
+  .auth-tab.active { background:var(--card); color:var(--accent); box-shadow:0 2px 6px -2px rgba(26,29,46,0.15); }
+  .row2 { display:flex; gap:10px; }
+  .row2 .field { flex:1; }
+  .okmsg { background:rgba(44,153,112,0.08); border:1px solid rgba(44,153,112,0.3); color:var(--green); font-size:12.5px; padding:9px 12px; border-radius:9px; margin-bottom:16px; display:none; }
+  .okmsg.show { display:block; }
+  .signup-note { font-size:11.5px; color:var(--ink-soft); text-align:center; margin-top:14px; line-height:1.5; }
+  .pending-icon { font-size:46px; margin-bottom:14px; }
+
+  /* Badge demandes en attente (topbar) */
+  .pending-badge { background:var(--red); color:white; font-size:10px; font-weight:700; border-radius:100px; padding:1px 6px; margin-left:4px; }
+  .admin-link { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--accent); background:var(--accent-soft); border:1px solid transparent; border-radius:100px; padding:7px 14px; cursor:pointer; font-family:inherit; font-weight:600; }
+  .admin-link:hover { border-color:var(--accent); }
+
+  /* Page admin validation */
+  .pending-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:12px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .pending-card .pc-info { flex:1; min-width:180px; }
+  .pending-card .pc-name { font-weight:600; font-size:15px; }
+  .pending-card .pc-email { font-size:12.5px; color:var(--ink-soft); }
+  .pending-card .pc-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .pc-select { font-family:inherit; font-size:13px; padding:8px 10px; border:1px solid var(--line); border-radius:9px; background:var(--bg-soft); }
+  .pc-btn { font-family:inherit; font-size:13px; font-weight:600; padding:8px 14px; border:none; border-radius:9px; cursor:pointer; }
+  .pc-validate { background:var(--green); color:white; }
+  .pc-refuse { background:var(--bg-soft); color:var(--red); border:1px solid var(--line); }
+  .member-row { display:flex; align-items:center; gap:12px; padding:12px 16px; border:1px solid var(--line); border-radius:11px; margin-bottom:8px; background:var(--card); }
+  .member-row .mr-av { width:34px; height:34px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+  .member-row .mr-info { flex:1; }
+  .member-row .mr-name { font-weight:600; font-size:14px; }
+  .member-row .mr-email { font-size:12px; color:var(--ink-soft); }
+  .role-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:6px; }
 </style>
 </head>
 <body>
 
-<!-- ========== ÉCRAN LOGIN ========== -->
+<!-- ========== ÉCRAN LOGIN / INSCRIPTION ========== -->
 <div id="screen-login">
   <div class="bg-decor"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
   <div class="login-card">
     <div class="brand-c">
       <div class="logo">N</div>
       <h1>Naturality</h1>
-      <p>Espace de gestion réservé</p>
+      <p id="loginSub">Espace de gestion réservé</p>
     </div>
-    <div class="lock-note">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Accès sur invitation uniquement — réservé aux membres
+
+    <!-- Onglets -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Connexion</button>
+      <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Créer un compte</button>
     </div>
-    <div class="err" id="err">Email ou mot de passe incorrect.</div>
-    <form onsubmit="doLogin(event)">
+
+    <div class="err" id="err"></div>
+    <div class="okmsg" id="okmsg"></div>
+
+    <!-- FORM CONNEXION -->
+    <form id="formLogin" onsubmit="doLogin(event)">
       <div class="field">
         <label for="email">Adresse email</label>
-        <input type="email" id="email" placeholder="prenom@naturality.fr" autocomplete="email">
+        <input type="email" id="email" placeholder="ton@email.fr" autocomplete="email">
       </div>
       <div class="field">
         <label for="pw">Mot de passe</label>
         <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <div class="row-between">
-        <label class="remember"><input type="checkbox" id="remember" checked> Rester connecté</label>
-      </div>
-      <button type="submit" class="btn">Se connecter</button>
+      <button type="submit" class="btn" id="btnLogin">Se connecter</button>
     </form>
-    <div class="demo-box">
-      <div class="dh">Comptes de démonstration (clique pour remplir)</div>
-      <div class="demo-acc" onclick="fill('baptiste@naturality.fr')"><div class="da" style="background:#6b3fa0">A</div><div><div class="dt">Baptiste — Administrateur</div><div class="dd">baptiste@naturality.fr</div></div></div>
-      <div class="demo-acc" onclick="fill('victor@naturality.fr')"><div class="da" style="background:#2c9970">T</div><div><div class="dt">Victor — Trésorier</div><div class="dd">victor@naturality.fr</div></div></div>
-      <div class="demo-acc" onclick="fill('theo@naturality.fr')"><div class="da" style="background:#2e7dca">B</div><div><div class="dt">Théo — Bénévole</div><div class="dd">theo@naturality.fr</div></div></div>
-    </div>
+
+    <!-- FORM INSCRIPTION -->
+    <form id="formSignup" class="hidden" onsubmit="doSignup(event)">
+      <div class="row2">
+        <div class="field">
+          <label for="su-prenom">Prénom</label>
+          <input type="text" id="su-prenom" placeholder="Baptiste">
+        </div>
+        <div class="field">
+          <label for="su-nom">Nom</label>
+          <input type="text" id="su-nom" placeholder="Lintot">
+        </div>
+      </div>
+      <div class="field">
+        <label for="su-email">Adresse email</label>
+        <input type="email" id="su-email" placeholder="ton@email.fr" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="su-pw">Mot de passe</label>
+        <input type="password" id="su-pw" placeholder="6 caractères minimum" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn" id="btnSignup">Créer mon compte</button>
+      <p class="signup-note">Ton compte devra être validé par un administrateur avant d'accéder au site.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ========== ÉCRAN EN ATTENTE ========== -->
+<div id="screen-pending" class="hidden">
+  <div class="bg-decor"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+  <div class="login-card" style="text-align:center">
+    <div class="pending-icon">⏳</div>
+    <h1 style="font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin-bottom:10px">Compte en attente</h1>
+    <p style="font-size:14px;color:var(--ink-mid);margin-bottom:8px">Ton compte a bien été créé, <strong id="pendingName">membre</strong> !</p>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:26px">Un administrateur doit valider ton accès et t'attribuer un rôle. Tu recevras l'accès dès que ce sera fait.</p>
+    <button class="btn" style="background:var(--bg-soft);color:var(--ink-mid);border:1px solid var(--line)" onclick="doLogout()">Se déconnecter</button>
   </div>
 </div>
 
@@ -437,11 +504,10 @@
         <div class="m-desc">Recettes, dépenses, achats, suivi des paiements.</div>
         <span class="m-soon">Bientôt</span>
       </div>
-      <div class="module asso" onclick="soon('Membres')">
+      <div class="module asso" onclick="goAdmin()">
         <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
         <div class="m-title">Membres &amp; bureau</div>
-        <div class="m-desc">Adhérents, rôles, coordonnées, cotisations.</div>
-        <span class="m-soon">Bientôt</span>
+        <div class="m-desc">Adhérents, rôles, validation des comptes.</div>
       </div>
       <div class="module asso" onclick="soon('Documents')">
         <div class="m-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7dca" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
@@ -523,6 +589,21 @@
     <div class="caisses-grid" id="caissesGrid"></div>
   </div>
 
+  <!-- PAGE ADMIN — GESTION MEMBRES -->
+  <div id="page-admin" class="wrap hidden">
+    <div class="space-head">
+      <button class="back-link" onclick="goHome()">← Retour à l'accueil</button>
+      <h2>Gestion des membres</h2>
+      <p>Valide les nouveaux comptes et attribue les rôles.</p>
+    </div>
+
+    <div class="section-head"><h2 style="font-size:17px">Demandes en attente</h2><div class="line"></div></div>
+    <div id="pendingList" style="margin-bottom:36px"></div>
+
+    <div class="section-head"><h2 style="font-size:17px">Membres actifs</h2><div class="line"></div></div>
+    <div id="membersList" style="padding-bottom:50px"></div>
+  </div>
+
 </div>
 
 <!-- SHEET CRÉER CAISSE -->
@@ -551,55 +632,141 @@
   </div>
 </div>
 
-<!-- MODAL RÔLE -->
+<!-- MODALE PROFIL (déconnexion) -->
 <div class="modal-bg" id="roleModal">
   <div class="modal">
-    <h3>Changer de profil</h3>
-    <p>Aperçu du système de rôles. En version connectée, chaque rôle donnera accès à des fonctions différentes.</p>
-    <div class="role-opt" onclick="setRole('Admin','Baptiste','B','#6b3fa0')"><div class="ri" style="background:#6b3fa0">A</div><div><div class="rt">Administrateur</div><div class="rd">Accès total — bureau</div></div></div>
-    <div class="role-opt" onclick="setRole('Trésorier','Victor','V','#2c9970')"><div class="ri" style="background:#2c9970">T</div><div><div class="rt">Trésorier</div><div class="rd">Finances, devis, factures, achats</div></div></div>
-    <div class="role-opt" onclick="setRole('Bénévole','Théo','T','#2e7dca')"><div class="ri" style="background:#2e7dca">T</div><div><div class="rt">Bénévole</div><div class="rd">Inventaire, planning jour J</div></div></div>
+    <h3 id="modalName">Mon profil</h3>
+    <p id="modalRoleDesc">Connecté.</p>
+    <div class="role-opt" id="adminAccess" onclick="goAdmin()" style="display:none">
+      <div class="ri" style="background:#6b3fa0">👥</div>
+      <div><div class="rt">Gestion des membres</div><div class="rd">Valider les comptes, attribuer les rôles</div></div>
+    </div>
+    <button class="btn" style="background:var(--bg-soft);color:var(--red);border:1px solid var(--line);margin-top:6px" onclick="doLogout()">Se déconnecter</button>
     <div class="modal-close" onclick="closeRole()">Fermer</div>
   </div>
 </div>
 
 <script>
-  const DEMO = {
-    'baptiste@naturality.fr': { role:'Admin', name:'Baptiste', initial:'B', color:'#6b3fa0' },
-    'victor@naturality.fr':   { role:'Trésorier', name:'Victor', initial:'V', color:'#2c9970' },
-    'theo@naturality.fr':     { role:'Bénévole', name:'Théo', initial:'T', color:'#2e7dca' },
+  // ============================================
+  // CONNEXION SUPABASE
+  // ============================================
+  const SUPABASE_URL = 'https://ijxmpudqfbxkmjmzdkfc.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_E4-j1Xic0N5BJuntRYmcBg_mGS1HUxx';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const ROLES = {
+    admin:    { label:'Admin',    color:'#6b3fa0', desc:'Accès total — gestion des membres' },
+    bureau:   { label:'Bureau',   color:'#2c9970', desc:'Accès large : inventaire, finances, événementiel' },
+    membre:   { label:'Membre',   color:'#2e7dca', desc:'Accès aux modules courants' },
+    benevole: { label:'Bénévole', color:'#e8722a', desc:'Inventaire et planning jour J' },
   };
-  const DEMO_PW = 'naturality';
 
-  function fill(email){ document.getElementById('email').value=email; document.getElementById('pw').value=DEMO_PW; document.getElementById('err').classList.remove('show'); }
+  let ME = null;        // mon profil { id, prenom, nom, email, role, statut }
+  let INV = [];         // inventaire en mémoire (miroir de la base)
 
-  function doLogin(e){
+  // ============================================
+  // AUTHENTIFICATION
+  // ============================================
+  function showErr(msg){ const e=document.getElementById('err'); e.textContent=msg; e.classList.add('show'); document.getElementById('okmsg').classList.remove('show'); }
+  function showOk(msg){ const e=document.getElementById('okmsg'); e.textContent=msg; e.classList.add('show'); document.getElementById('err').classList.remove('show'); }
+  function clearMsg(){ document.getElementById('err').classList.remove('show'); document.getElementById('okmsg').classList.remove('show'); }
+
+  function switchTab(t){
+    clearMsg();
+    document.getElementById('tabLogin').classList.toggle('active', t==='login');
+    document.getElementById('tabSignup').classList.toggle('active', t==='signup');
+    document.getElementById('formLogin').classList.toggle('hidden', t!=='login');
+    document.getElementById('formSignup').classList.toggle('hidden', t!=='signup');
+  }
+
+  async function doSignup(e){
     e.preventDefault();
-    const email=document.getElementById('email').value.trim().toLowerCase();
-    const pw=document.getElementById('pw').value;
-    const err=document.getElementById('err');
-    if(DEMO[email] && pw===DEMO_PW){
-      const u=DEMO[email];
-      setRole(u.role,u.name,u.initial,u.color);
-      document.getElementById('screen-login').classList.add('hidden');
-      document.getElementById('screen-app').classList.remove('hidden');
-      goHome();
-    } else {
-      err.textContent = (email && !DEMO[email]) ? "Aucun compte trouvé pour cet email (accès sur invitation)." : "Email ou mot de passe incorrect.";
-      err.classList.add('show');
+    clearMsg();
+    const prenom = document.getElementById('su-prenom').value.trim();
+    const nom = document.getElementById('su-nom').value.trim();
+    const email = document.getElementById('su-email').value.trim().toLowerCase();
+    const pw = document.getElementById('su-pw').value;
+    if(!prenom || !nom){ showErr("Indique ton prénom et ton nom."); return; }
+    if(pw.length < 6){ showErr("Le mot de passe doit faire au moins 6 caractères."); return; }
+    const btn = document.getElementById('btnSignup'); btn.disabled=true; btn.textContent='Création...';
+    const { data, error } = await sb.auth.signUp({
+      email, password: pw,
+      options: { data: { prenom, nom } }
+    });
+    btn.disabled=false; btn.textContent='Créer mon compte';
+    if(error){ showErr(traduireErreur(error.message)); return; }
+    showOk("Compte créé ! En attente de validation par un administrateur.");
+    switchTab('login');
+    document.getElementById('email').value = email;
+  }
+
+  async function doLogin(e){
+    e.preventDefault();
+    clearMsg();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const pw = document.getElementById('pw').value;
+    const btn = document.getElementById('btnLogin'); btn.disabled=true; btn.textContent='Connexion...';
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    btn.disabled=false; btn.textContent='Se connecter';
+    if(error){ showErr(traduireErreur(error.message)); return; }
+    await chargerProfilEtRouter();
+  }
+
+  async function doLogout(){
+    await sb.auth.signOut();
+    ME = null; INV = [];
+    location.reload();
+  }
+
+  function traduireErreur(msg){
+    if(/Invalid login/i.test(msg)) return "Email ou mot de passe incorrect.";
+    if(/already registered/i.test(msg)) return "Un compte existe déjà avec cet email.";
+    if(/Email not confirmed/i.test(msg)) return "Email pas encore confirmé.";
+    return msg;
+  }
+
+  // Charge le profil et dirige vers le bon écran
+  async function chargerProfilEtRouter(){
+    const { data:{ user } } = await sb.auth.getUser();
+    if(!user){ showScreen('login'); return; }
+    const { data:profil, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
+    if(error || !profil){ showScreen('login'); showErr("Profil introuvable, contacte un admin."); return; }
+    ME = profil;
+    if(ME.statut !== 'valide'){
+      document.getElementById('pendingName').textContent = (ME.prenom||'') ;
+      showScreen('pending');
+      return;
     }
+    // validé -> app
+    setupUser();
+    showScreen('app');
+    goHome();
+    await chargerInventaire();
+    if(ME.role === 'admin'){ rafraichirBadgeAdmin(); }
   }
 
-  function setRole(role,name,initial,color){
-    document.getElementById('roleTag').textContent=role;
-    document.getElementById('userName').textContent=name;
-    const av=document.getElementById('userAv'); av.textContent=initial; av.style.background=color;
-    const rt=document.getElementById('roleTag'); rt.style.color=color; rt.style.background=color+'14';
-    closeRole();
+  function showScreen(s){
+    document.getElementById('screen-login').classList.toggle('hidden', s!=='login');
+    document.getElementById('screen-pending').classList.toggle('hidden', s!=='pending');
+    document.getElementById('screen-app').classList.toggle('hidden', s!=='app');
   }
 
+  function setupUser(){
+    const r = ROLES[ME.role] || ROLES.membre;
+    const initial = (ME.prenom||ME.email||'?').charAt(0).toUpperCase();
+    document.getElementById('roleTag').textContent = r.label;
+    document.getElementById('userName').textContent = ME.prenom || ME.email;
+    const av=document.getElementById('userAv'); av.textContent=initial; av.style.background=r.color;
+    const rt=document.getElementById('roleTag'); rt.style.color=r.color; rt.style.background=r.color+'14';
+    // Lien admin visible seulement pour admin
+    const adminMod = document.querySelector('[onclick="goAdmin()"]');
+  }
+
+  // ============================================
+  // NAVIGATION
+  // ============================================
   function showPage(id){
-    ['page-home','page-asso','page-event','page-inventaire'].forEach(p=>document.getElementById(p).classList.add('hidden'));
+    ['page-home','page-asso','page-event','page-inventaire','page-admin'].forEach(p=>document.getElementById(p).classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
     window.scrollTo(0,0);
   }
@@ -608,102 +775,158 @@
     if(u==='asso'){ showPage('page-asso'); document.getElementById('breadcrumb').innerHTML='<span class="sep">/</span><span class="univ-pill asso">Associatif</span>'; }
     else { showPage('page-event'); document.getElementById('breadcrumb').innerHTML='<span class="sep">/</span><span class="univ-pill event">Événementiel</span>'; }
   }
-  function soon(nom){ alert("« "+nom+" » — ce module sera construit prochainement.\n\nLa structure du site est en place, on remplit les modules un par un."); }
+  function soon(nom){ alert("« "+nom+" » — ce module sera construit prochainement."); }
 
-  function openRole(){ document.getElementById('roleModal').classList.add('open'); }
+  function openRole(){
+    const r = ROLES[ME.role] || ROLES.membre;
+    document.getElementById('modalName').textContent = (ME.prenom||'')+' '+(ME.nom||'');
+    document.getElementById('modalRoleDesc').textContent = r.label+' — '+r.desc;
+    document.getElementById('adminAccess').style.display = (ME.role==='admin') ? 'flex' : 'none';
+    document.getElementById('roleModal').classList.add('open');
+  }
   function closeRole(){ document.getElementById('roleModal').classList.remove('open'); }
   document.getElementById('roleModal').addEventListener('click',function(e){ if(e.target===this) closeRole(); });
 
-  /* ============ INVENTAIRE ============ */
-  // NOTE : pour l'instant les données sont stockées dans la variable INV ci-dessous (en mémoire).
-  // Demain, avec Supabase, ces données seront synchronisées entre tous les appareils.
-  // Pour ne rien perdre entre deux ouvertures aujourd'hui, on sauvegarde aussi en local (navigateur).
+  // ============================================
+  // ADMIN — VALIDATION DES MEMBRES
+  // ============================================
+  function goAdmin(){
+    if(!ME || ME.role!=='admin'){ alert("Réservé aux administrateurs."); return; }
+    closeRole();
+    showPage('page-admin');
+    document.getElementById('breadcrumb').innerHTML='<span class="sep">/</span><span class="cur">Gestion des membres</span>';
+    chargerMembres();
+  }
 
-  let INV = [];
+  async function chargerMembres(){
+    const { data, error } = await sb.from('profiles').select('*').order('created_at',{ascending:false});
+    if(error){ document.getElementById('pendingList').innerHTML='<p style="color:var(--red)">Erreur : '+error.message+'</p>'; return; }
+    const pend = data.filter(p=>p.statut==='en_attente');
+    const actifs = data.filter(p=>p.statut==='valide');
+
+    // Demandes en attente
+    const pl = document.getElementById('pendingList');
+    if(!pend.length){ pl.innerHTML='<p style="color:var(--ink-soft);font-size:14px">Aucune demande en attente.</p>'; }
+    else {
+      pl.innerHTML = pend.map(p=>{
+        return '<div class="pending-card">'+
+          '<div class="pc-info"><div class="pc-name">'+escapeHtml((p.prenom||'')+' '+(p.nom||''))+'</div><div class="pc-email">'+escapeHtml(p.email||'')+'</div></div>'+
+          '<div class="pc-actions">'+
+            '<select class="pc-select" id="role-'+p.id+'">'+
+              '<option value="benevole">Bénévole</option>'+
+              '<option value="membre">Membre</option>'+
+              '<option value="bureau">Bureau</option>'+
+              '<option value="admin">Admin</option>'+
+            '</select>'+
+            '<button class="pc-btn pc-validate" onclick="validerMembre(\''+p.id+'\')">Valider</button>'+
+            '<button class="pc-btn pc-refuse" onclick="refuserMembre(\''+p.id+'\')">Refuser</button>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // Membres actifs
+    const ml = document.getElementById('membersList');
+    if(!actifs.length){ ml.innerHTML='<p style="color:var(--ink-soft);font-size:14px">Aucun membre actif.</p>'; }
+    else {
+      ml.innerHTML = actifs.map(p=>{
+        const r = ROLES[p.role] || ROLES.membre;
+        const initial = (p.prenom||p.email||'?').charAt(0).toUpperCase();
+        const isMe = ME && p.id===ME.id;
+        return '<div class="member-row">'+
+          '<div class="mr-av" style="background:'+r.color+'">'+initial+'</div>'+
+          '<div class="mr-info"><div class="mr-name">'+escapeHtml((p.prenom||'')+' '+(p.nom||''))+(isMe?' (toi)':'')+'</div><div class="mr-email">'+escapeHtml(p.email||'')+'</div></div>'+
+          '<span class="role-badge" style="color:'+r.color+';background:'+r.color+'14">'+r.label+'</span>'+
+        '</div>';
+      }).join('');
+    }
+    rafraichirBadgeAdmin(pend.length);
+  }
+
+  async function validerMembre(id){
+    const role = document.getElementById('role-'+id).value;
+    const { error } = await sb.from('profiles').update({ role, statut:'valide' }).eq('id', id);
+    if(error){ alert("Erreur : "+error.message); return; }
+    chargerMembres();
+  }
+  async function refuserMembre(id){
+    if(!confirm("Refuser ce compte ? La personne n'aura pas accès.")) return;
+    const { error } = await sb.from('profiles').update({ statut:'refuse' }).eq('id', id);
+    if(error){ alert("Erreur : "+error.message); return; }
+    chargerMembres();
+  }
+
+  async function rafraichirBadgeAdmin(n){
+    if(!ME || ME.role!=='admin') return;
+    if(n===undefined){
+      const { data } = await sb.from('profiles').select('id').eq('statut','en_attente');
+      n = data ? data.length : 0;
+    }
+    // badge sur le module Membres (page asso)
+    const mod = document.querySelector('#page-asso [onclick="goAdmin()"] .m-title');
+    if(mod){
+      mod.innerHTML = 'Membres &amp; bureau' + (n>0 ? ' <span class="pending-badge">'+n+'</span>' : '');
+    }
+  }
+
+  // ============================================
+  // INVENTAIRE (synchronisé Supabase)
+  // ============================================
   const ICONS = ['📦','🎮','🖥️','🪑','🔌','🎧','🕹️','📺','🎤','💡','🧰','🎲','⌨️','🖱️','📷','🔋'];
   let sheetType = 'theme';
   let sheetIcon = '📦';
-  let editingId = null;
-
-  // Données de démarrage (exemple, modifiable/supprimable)
-  const SEED = [
-    { id:'c1', name:'Caisse Consoles', type:'theme', icon:'🎮', objs:[
-      { id:'o1', name:'PS5', qty:3, opts:[{k:'état',v:'ok'}] },
-      { id:'o2', name:'Nintendo Switch', qty:3, opts:[{k:'état',v:'ok'}] },
-      { id:'o3', name:'Switch 2', qty:2, opts:[{k:'état',v:'ok'}] },
-      { id:'o4', name:'Wii', qty:2, opts:[{k:'état',v:'rep'}] },
-    ]},
-    { id:'c2', name:'Caisse Écrans', type:'theme', icon:'🖥️', objs:[
-      { id:'o5', name:'Écran 24"', qty:4, opts:[{k:'état',v:'ok'}] },
-      { id:'o6', name:'Écran 27"', qty:2, opts:[{k:'état',v:'ok'}] },
-    ]},
-    { id:'c3', name:'Stand 1 complet', type:'set', icon:'🎯', objs:[
-      { id:'o7', name:'Table', qty:1, opts:[] },
-      { id:'o8', name:'Multiprise', qty:2, opts:[] },
-      { id:'o9', name:'Manettes', qty:4, opts:[{k:'état',v:'ok'}] },
-    ]},
-  ];
-
-  function loadInv(){
-    try {
-      const saved = window.__invData;
-      if(saved && saved.length) { INV = saved; return; }
-    } catch(e){}
-    INV = JSON.parse(JSON.stringify(SEED));
-  }
-  function saveInv(){ window.__invData = INV; } // demain -> Supabase
 
   function goInventaire(){
     showPage('page-inventaire');
     document.getElementById('breadcrumb').innerHTML='<span class="sep">/</span><span class="univ-pill asso" style="cursor:pointer" onclick="goSpace(\'asso\')">Associatif</span><span class="sep">/</span><span class="cur">Inventaire</span>';
-    if(!INV.length) loadInv();
     renderCaisses();
   }
 
-  function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  async function chargerInventaire(){
+    const { data:caisses, error:e1 } = await sb.from('caisses').select('*').order('created_at',{ascending:true});
+    const { data:objets, error:e2 } = await sb.from('objets').select('*').order('created_at',{ascending:true});
+    if(e1||e2){ console.error(e1||e2); return; }
+    INV = (caisses||[]).map(c=>({
+      id:c.id, name:c.nom, type:c.type, icon:c.icon, _open:false,
+      objs:(objets||[]).filter(o=>o.caisse_id===c.id).map(o=>({ id:o.id, name:o.nom, qty:o.qty, opts:o.opts||[] }))
+    }));
+    if(document.getElementById('page-inventaire') && !document.getElementById('page-inventaire').classList.contains('hidden')) renderCaisses();
+  }
 
+  function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   function etatChip(v){
     const map = { ok:['etat-ok','Fonctionnel'], rep:['etat-rep','À réparer'], hs:['etat-hs','HS'] };
     const m = map[v]; if(!m) return '';
     return '<span class="opt-chip '+m[0]+'">'+m[1]+'</span>';
   }
-
   function renderStats(){
     const nbCaisses = INV.length;
-    let nbObjs = 0, nbPieces = 0, aRep = 0;
-    INV.forEach(c=>c.objs.forEach(o=>{ nbObjs++; nbPieces += (parseInt(o.qty)||0); if(o.opts.some(x=>x.k==='état'&&(x.v==='rep'||x.v==='hs'))) aRep++; }));
+    let nbObjs=0, nbPieces=0, aRep=0;
+    INV.forEach(c=>c.objs.forEach(o=>{ nbObjs++; nbPieces+=(parseInt(o.qty)||0); if((o.opts||[]).some(x=>x.k==='état'&&(x.v==='rep'||x.v==='hs'))) aRep++; }));
     document.getElementById('invStats').innerHTML =
       '<div class="inv-stat"><div class="v">'+nbCaisses+'</div><div class="l">caisses</div></div>'+
       '<div class="inv-stat"><div class="v">'+nbObjs+'</div><div class="l">types d\'objets</div></div>'+
       '<div class="inv-stat"><div class="v">'+nbPieces+'</div><div class="l">pièces au total</div></div>'+
       '<div class="inv-stat"><div class="v">'+aRep+'</div><div class="l">à vérifier</div></div>';
   }
-
   function renderCaisses(){
     renderStats();
     const grid = document.getElementById('caissesGrid');
     const q = (document.getElementById('invSearch').value||'').toLowerCase().trim();
-
     let list = INV;
-    if(q){
-      list = INV.filter(c => c.name.toLowerCase().includes(q) || c.objs.some(o=>o.name.toLowerCase().includes(q)));
-    }
-
+    if(q){ list = INV.filter(c => c.name.toLowerCase().includes(q) || c.objs.some(o=>o.name.toLowerCase().includes(q))); }
     if(!list.length){
       grid.innerHTML = '<div class="inv-empty" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><p>'+(q?'Aucun résultat':'Aucune caisse pour l\'instant')+'</p><div class="sub">'+(q?'Essaie un autre mot':'Clique sur « Nouvelle caisse » pour commencer')+'</div></div>';
       return;
     }
-
     grid.innerHTML = list.map(c=>{
       const openClass = c._open ? 'open' : '';
       const objsHtml = c.objs.length ? c.objs.map(o=>{
-        const opts = o.opts.map(x=> x.k==='état' ? etatChip(x.v) : '<span class="opt-chip">'+escapeHtml(x.k)+' : '+escapeHtml(x.v)+'</span>').join('');
+        const opts = (o.opts||[]).map(x=> x.k==='état' ? etatChip(x.v) : '<span class="opt-chip">'+escapeHtml(x.k)+' : '+escapeHtml(x.v)+'</span>').join('');
         return '<div class="obj-row"><div class="obj-qty">'+escapeHtml(String(o.qty))+'</div><div class="obj-main"><div class="obj-name">'+escapeHtml(o.name)+'</div>'+(opts?'<div class="obj-opts">'+opts+'</div>':'')+'</div><button class="obj-del" onclick="delObj(\''+c.id+'\',\''+o.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button></div>';
       }).join('') : '<div class="empty-caisse">Caisse vide — ajoute un objet ci-dessous</div>';
-
       const tag = c.type==='set' ? '<span class="caisse-tag set">Set</span>' : '<span class="caisse-tag theme">Thème</span>';
       const totalPieces = c.objs.reduce((s,o)=>s+(parseInt(o.qty)||0),0);
-
       return '<div class="caisse '+openClass+'" id="caisse-'+c.id+'">'+
         '<div class="caisse-head" onclick="toggleCaisse(\''+c.id+'\')">'+
           '<div class="caisse-icon" style="background:'+(c.type==='set'?'var(--event-soft)':'var(--asso-soft)')+'">'+c.icon+'</div>'+
@@ -726,50 +949,69 @@
     }).join('');
   }
 
-  function toggleCaisse(id){ const c = INV.find(x=>x.id===id); if(c){ c._open=!c._open; renderCaisses(); } }
-  function uid(){ return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+  function toggleCaisse(id){ const c=INV.find(x=>x.id===id); if(c){ c._open=!c._open; renderCaisses(); } }
 
-  function addObj(cid){
-    const c = INV.find(x=>x.id===cid); if(!c) return;
-    const nameEl = document.getElementById('name-'+cid);
-    const qtyEl = document.getElementById('qty-'+cid);
-    const name = nameEl.value.trim();
-    if(!name){ nameEl.focus(); return; }
-    const qty = parseInt(qtyEl.value)||1;
-    c.objs.push({ id:uid(), name, qty, opts:[] });
-    c._open = true;
-    saveInv(); renderCaisses();
+  async function addObj(cid){
+    const c=INV.find(x=>x.id===cid); if(!c) return;
+    const nameEl=document.getElementById('name-'+cid), qtyEl=document.getElementById('qty-'+cid);
+    const name=nameEl.value.trim(); if(!name){ nameEl.focus(); return; }
+    const qty=parseInt(qtyEl.value)||1;
+    const { data, error } = await sb.from('objets').insert({ caisse_id:cid, nom:name, qty, opts:[] }).select().single();
+    if(error){ alert("Erreur : "+error.message); return; }
+    c.objs.push({ id:data.id, name:data.nom, qty:data.qty, opts:[] });
+    c._open=true; renderCaisses();
     setTimeout(()=>{ const el=document.getElementById('name-'+cid); if(el) el.focus(); },50);
   }
-  function delObj(cid,oid){ const c=INV.find(x=>x.id===cid); if(!c) return; c.objs=c.objs.filter(o=>o.id!==oid); saveInv(); renderCaisses(); }
-  function delCaisse(cid){ const c=INV.find(x=>x.id===cid); if(!c) return; if(confirm('Supprimer la caisse « '+c.name+' » et tout son contenu ?')){ INV=INV.filter(x=>x.id!==cid); saveInv(); renderCaisses(); } }
-  function renameCaisse(cid){ const c=INV.find(x=>x.id===cid); if(!c) return; const n=prompt('Nouveau nom de la caisse :',c.name); if(n&&n.trim()){ c.name=n.trim(); saveInv(); renderCaisses(); } }
+  async function delObj(cid,oid){
+    const { error } = await sb.from('objets').delete().eq('id', oid);
+    if(error){ alert("Erreur : "+error.message); return; }
+    const c=INV.find(x=>x.id===cid); if(c) c.objs=c.objs.filter(o=>o.id!==oid);
+    renderCaisses();
+  }
+  async function delCaisse(cid){
+    const c=INV.find(x=>x.id===cid); if(!c) return;
+    if(!confirm('Supprimer la caisse « '+c.name+' » et tout son contenu ?')) return;
+    const { error } = await sb.from('caisses').delete().eq('id', cid);
+    if(error){ alert("Erreur : "+error.message); return; }
+    INV=INV.filter(x=>x.id!==cid); renderCaisses();
+  }
+  async function renameCaisse(cid){
+    const c=INV.find(x=>x.id===cid); if(!c) return;
+    const n=prompt('Nouveau nom de la caisse :',c.name); if(!n||!n.trim()) return;
+    const { error } = await sb.from('caisses').update({ nom:n.trim() }).eq('id', cid);
+    if(error){ alert("Erreur : "+error.message); return; }
+    c.name=n.trim(); renderCaisses();
+  }
 
-  // Sheet création
   function openSheet(){
-    editingId=null; sheetType='theme'; sheetIcon='📦';
-    document.getElementById('sheetTitle').textContent='Nouvelle caisse';
+    sheetType='theme'; sheetIcon='📦';
     document.getElementById('caisseName').value='';
-    selectType('theme');
-    renderIconPicker();
+    selectType('theme'); renderIconPicker();
     document.getElementById('sheetBg').classList.add('open');
     setTimeout(()=>document.getElementById('caisseName').focus(),100);
   }
   function closeSheet(){ document.getElementById('sheetBg').classList.remove('open'); }
   function selectType(t){ sheetType=t; document.getElementById('typeTheme').classList.toggle('sel',t==='theme'); document.getElementById('typeSet').classList.toggle('sel',t==='set'); }
-  function renderIconPicker(){
-    document.getElementById('iconPicker').innerHTML = ICONS.map(ic=>'<div class="icon-opt '+(ic===sheetIcon?'sel':'')+'" onclick="pickIcon(\''+ic+'\')">'+ic+'</div>').join('');
-  }
+  function renderIconPicker(){ document.getElementById('iconPicker').innerHTML = ICONS.map(ic=>'<div class="icon-opt '+(ic===sheetIcon?'sel':'')+'" onclick="pickIcon(\''+ic+'\')">'+ic+'</div>').join(''); }
   function pickIcon(ic){ sheetIcon=ic; renderIconPicker(); }
-  function saveCaisse(){
+  async function saveCaisse(){
     const name=document.getElementById('caisseName').value.trim();
     if(!name){ document.getElementById('caisseName').focus(); return; }
-    INV.unshift({ id:uid(), name, type:sheetType, icon:sheetIcon, objs:[], _open:true });
-    saveInv(); closeSheet(); renderCaisses();
+    const { data, error } = await sb.from('caisses').insert({ nom:name, type:sheetType, icon:sheetIcon }).select().single();
+    if(error){ alert("Erreur : "+error.message); return; }
+    INV.push({ id:data.id, name:data.nom, type:data.type, icon:data.icon, objs:[], _open:true });
+    closeSheet(); renderCaisses();
   }
   document.getElementById('sheetBg').addEventListener('click',function(e){ if(e.target===this) closeSheet(); });
 
-  loadInv();
+  // ============================================
+  // DÉMARRAGE : vérifie si déjà connecté
+  // ============================================
+  (async function init(){
+    const { data:{ session } } = await sb.auth.getSession();
+    if(session){ await chargerProfilEtRouter(); }
+    else { showScreen('login'); }
+  })();
 </script>
 
 </body>
