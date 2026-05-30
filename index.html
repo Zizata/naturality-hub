@@ -266,6 +266,14 @@
   .obj-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-soft); }
   .obj-row:last-child { border-bottom:none; }
   .obj-qty { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px; color:var(--ink); background:var(--bg-soft); border:1px solid var(--line-soft); border-radius:8px; min-width:38px; height:32px; display:flex; align-items:center; justify-content:center; padding:0 6px; }
+  /* Stepper quantité (− valeur +) */
+  .qty-stepper { display:flex; align-items:center; gap:0; flex-shrink:0; }
+  .qty-stepper button { width:30px; height:32px; border:1px solid var(--line); background:var(--card); color:var(--ink-mid); font-size:18px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; line-height:1; transition:background .15s, color .15s; }
+  .qty-stepper button:hover { background:var(--accent-soft); color:var(--accent); }
+  .qty-stepper button:active { background:var(--accent); color:white; }
+  .qty-stepper .qmoins { border-radius:8px 0 0 8px; }
+  .qty-stepper .qplus { border-radius:0 8px 8px 0; }
+  .qty-stepper .qval { min-width:34px; height:32px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--bg-soft); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px; }
   .obj-main { flex:1; min-width:0; }
   .obj-name { font-size:14.5px; font-weight:500; }
   .obj-opts { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
@@ -1018,7 +1026,7 @@
       const openClass = c._open ? 'open' : '';
       const objsHtml = c.objs.length ? c.objs.map(o=>{
         const opts = (o.opts||[]).map(x=> x.k==='état' ? etatChip(x.v) : '<span class="opt-chip">'+escapeHtml(x.k)+' : '+escapeHtml(x.v)+'</span>').join('');
-        return '<div class="obj-row"><div class="obj-qty">'+escapeHtml(String(o.qty))+'</div><div class="obj-main"><div class="obj-name">'+escapeHtml(o.name)+'</div>'+(opts?'<div class="obj-opts">'+opts+'</div>':'')+'</div><button class="obj-del" onclick="delObj(\''+c.id+'\',\''+o.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button></div>';
+        return '<div class="obj-row"><div class="qty-stepper"><button class="qmoins" onclick="changeQty(\''+c.id+'\',\''+o.id+'\',-1)">−</button><div class="qval">'+escapeHtml(String(o.qty))+'</div><button class="qplus" onclick="changeQty(\''+c.id+'\',\''+o.id+'\',1)">+</button></div><div class="obj-main"><div class="obj-name">'+escapeHtml(o.name)+'</div>'+(opts?'<div class="obj-opts">'+opts+'</div>':'')+'</div><button class="obj-del" onclick="delObj(\''+c.id+'\',\''+o.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button></div>';
       }).join('') : '<div class="empty-caisse">Caisse vide — ajoute un objet ci-dessous</div>';
       const tag = c.type==='set' ? '<span class="caisse-tag set">Set</span>' : '<span class="caisse-tag theme">Thème</span>';
       const totalPieces = c.objs.reduce((s,o)=>s+(parseInt(o.qty)||0),0);
@@ -1062,6 +1070,16 @@
     if(error){ alert("Erreur : "+error.message); return; }
     const c=INV.find(x=>x.id===cid); if(c) c.objs=c.objs.filter(o=>o.id!==oid);
     renderCaisses();
+  }
+  async function changeQty(cid,oid,delta){
+    const c=INV.find(x=>x.id===cid); if(!c) return;
+    const o=c.objs.find(x=>x.id===oid); if(!o) return;
+    const newQty = Math.max(1, (parseInt(o.qty)||1) + delta);  // jamais en dessous de 1
+    if(newQty === o.qty) return;
+    o.qty = newQty;            // mise à jour visuelle immédiate
+    renderCaisses();
+    const { error } = await sb.from('objets').update({ qty:newQty }).eq('id', oid);
+    if(error){ alert("Erreur : "+error.message); o.qty -= delta; renderCaisses(); }
   }
   async function delCaisse(cid){
     const c=INV.find(x=>x.id===cid); if(!c) return;
