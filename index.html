@@ -233,10 +233,10 @@
   .inv-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
   .inv-search { flex:1; min-width:200px; position:relative; }
   .inv-search input { width:100%; font-family:inherit; font-size:14px; padding:11px 14px 11px 38px; border:1px solid var(--line); border-radius:11px; background:var(--card); color:var(--ink); }
-  .inv-search input:focus { outline:none; border-color:var(--asso); }
+  .inv-search input:focus { outline:none; border-color:var(--accent); }
   .inv-search svg { position:absolute; left:13px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:var(--ink-faint); }
-  .btn-add { display:inline-flex; align-items:center; gap:7px; font-family:inherit; font-size:14px; font-weight:600; padding:11px 18px; border:none; border-radius:11px; background:var(--asso); color:white; cursor:pointer; transition:background .2s; white-space:nowrap; }
-  .btn-add:hover { background:#256bb0; }
+  .btn-add { display:inline-flex; align-items:center; gap:7px; font-family:inherit; font-size:14px; font-weight:600; padding:11px 18px; border:none; border-radius:11px; background:var(--accent); color:white; cursor:pointer; transition:background .2s; white-space:nowrap; }
+  .btn-add:hover { background:var(--accent-dark); }
   .btn-add svg { width:16px; height:16px; stroke:white; }
 
   .inv-stats { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
@@ -281,8 +281,8 @@
   .obj-add-row input { font-family:inherit; font-size:13.5px; padding:8px 11px; border:1px solid var(--line); border-radius:9px; background:var(--bg-soft); }
   .obj-add-row input:focus { outline:none; border-color:var(--asso); background:var(--card); }
   .obj-add-row input.name { flex:1; }
-  .obj-add-btn { background:var(--asso-soft); color:var(--asso); border:1px solid transparent; border-radius:9px; padding:0 14px; font-family:inherit; font-weight:600; font-size:13px; cursor:pointer; white-space:nowrap; }
-  .obj-add-btn:hover { background:var(--asso); color:white; }
+  .obj-add-btn { background:var(--accent-soft); color:var(--accent); border:1px solid transparent; border-radius:9px; padding:0 14px; font-family:inherit; font-weight:600; font-size:13px; cursor:pointer; white-space:nowrap; }
+  .obj-add-btn:hover { background:var(--accent); color:white; }
   .caisse-actions { display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line-soft); }
   .ca-btn { font-family:inherit; font-size:12.5px; color:var(--ink-soft); background:none; border:none; cursor:pointer; padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; }
   .ca-btn:hover { background:var(--bg-soft); color:var(--ink); }
@@ -306,18 +306,18 @@
   .sheet .field { margin-bottom:16px; }
   .sheet label { display:block; font-size:12.5px; font-weight:600; color:var(--ink-mid); margin-bottom:6px; }
   .sheet input[type=text] { width:100%; font-family:inherit; font-size:14.5px; padding:11px 14px; border:1px solid var(--line); border-radius:11px; background:var(--bg-soft); }
-  .sheet input:focus { outline:none; border-color:var(--asso); background:var(--card); }
+  .sheet input:focus { outline:none; border-color:var(--accent); background:var(--card); }
   .type-toggle { display:flex; gap:8px; }
   .type-opt { flex:1; text-align:center; padding:12px; border:1px solid var(--line); border-radius:11px; cursor:pointer; font-size:13.5px; transition:all .2s; }
-  .type-opt.sel { border-color:var(--asso); background:var(--asso-soft); color:var(--asso); font-weight:600; }
+  .type-opt.sel { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:600; }
   .icon-picker { display:flex; gap:8px; flex-wrap:wrap; }
   .icon-opt { width:42px; height:42px; border:1px solid var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; transition:all .2s; }
-  .icon-opt.sel { border-color:var(--asso); background:var(--asso-soft); }
+  .icon-opt.sel { border-color:var(--accent); background:var(--accent-soft); }
   .sheet-actions { display:flex; gap:10px; margin-top:8px; }
   .sheet-actions button { flex:1; font-family:inherit; font-size:14px; font-weight:600; padding:12px; border-radius:11px; cursor:pointer; border:none; }
   .sheet-cancel { background:var(--bg-soft); color:var(--ink-mid); border:1px solid var(--line) !important; }
-  .sheet-save { background:var(--asso); color:white; }
-  .sheet-save:hover { background:#256bb0; }
+  .sheet-save { background:var(--accent); color:white; }
+  .sheet-save:hover { background:var(--accent-dark); }
 
   /* Auth tabs + signup */
   .auth-tabs { display:flex; gap:6px; background:var(--bg-soft); border:1px solid var(--line-soft); border-radius:11px; padding:4px; margin-bottom:20px; }
@@ -361,33 +361,57 @@
   .forgot-link { display:block; text-align:right; font-size:12.5px; color:var(--accent); cursor:pointer; margin-top:-6px; margin-bottom:16px; background:none; border:none; font-family:inherit; margin-left:auto; }
   .forgot-link:hover { text-decoration:underline; }
 
+  /* Email masqué par défaut sur petit écran via classe */
+  .user-email { }
+
   /* ===== RESPONSIVE MOBILE ===== */
   @media (max-width:600px){
     .wrap { padding:0 16px; }
-    .topbar { padding:12px 16px; }
+
+    /* TOPBAR : empêcher tout débordement */
+    .topbar { padding:10px 14px; gap:8px; }
+    .tb-left { gap:10px; min-width:0; flex:1; overflow:hidden; }
     .brand-mini .s { display:none; }
-    .breadcrumb { font-size:11px; }
-    .user-chip { padding:5px 7px 5px 11px; font-size:12px; }
+    .brand-mini .t { font-size:15px; }
+    .logo-mini { width:30px; height:30px; font-size:15px; }
+    .breadcrumb { font-size:11px; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .breadcrumb .univ-pill { padding:2px 7px; font-size:9.5px; }
+    .breadcrumb .sep { display:none; }            /* on enlève les / pour gagner de la place */
+    .user-chip { padding:5px; gap:0; flex-shrink:0; border:none; background:transparent; }
+    .user-chip #userName { display:none; }        /* prénom masqué, on garde la pastille */
+    .user-chip .role-tag { display:none; }        /* tag rôle masqué (la couleur de pastille suffit) */
+    .user-chip .av { width:34px; height:34px; font-size:14px; }
+
     .space-head h2 { font-size:26px; }
+    .space-head p { font-size:14px; }
+    .hero { padding:36px 0 28px; }
     .hero h1 { font-size:30px; }
 
-    /* Panneau admin : tout en colonne, boutons pleine largeur */
+    /* STATS inventaire : plus compactes */
+    .inv-stats { gap:8px; margin-bottom:18px; }
+    .inv-stat { min-width:calc(50% - 4px); padding:11px 13px; }
+    .inv-stat .v { font-size:21px; }
+    .inv-stat .l { font-size:11px; }
+
+    /* Panneau admin : colonne, boutons pleine largeur */
     .pending-card { flex-direction:column; align-items:stretch; gap:12px; padding:16px; }
     .pending-card .pc-actions { flex-direction:column; align-items:stretch; gap:8px; }
     .pc-select { width:100%; padding:11px; font-size:14px; }
     .pc-btn { width:100%; padding:12px; font-size:14px; }
     .member-row { flex-wrap:wrap; }
 
-    /* Inventaire : boutons plus gros */
-    .inv-toolbar { flex-direction:column; align-items:stretch; }
+    /* Inventaire : boutons plus gros, toolbar en colonne */
+    .inv-toolbar { flex-direction:column; align-items:stretch; gap:10px; }
     .btn-add { width:100%; justify-content:center; padding:13px; }
-    .inv-stat { min-width:calc(50% - 6px); }
     .obj-add-row { flex-wrap:wrap; }
     .obj-add-row input.name { min-width:100%; order:2; }
-    .obj-add-row input.qty { order:1; }
-    .obj-add-btn { order:3; flex:1; padding:10px; }
+    .obj-add-row input.qty { order:1; width:60px; }
+    .obj-add-btn { order:3; flex:1; padding:11px; }
     .caisse-actions { flex-wrap:wrap; }
-    .ca-btn { flex:1; justify-content:center; padding:8px; }
+    .ca-btn { flex:1; justify-content:center; padding:9px; }
+
+    /* Sheet création : icônes un peu plus petites pour tout voir */
+    .icon-opt { width:38px; height:38px; font-size:18px; }
   }
 </style>
 </head>
